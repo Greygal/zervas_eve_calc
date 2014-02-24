@@ -7,8 +7,11 @@
     $data = null;
     count=1;
 
+    // Retrieve the ore value json from the cache file.
     $.getJSON( "/data/ore-value.json.php", function( data ) {
         $data = $(data);
+        
+        // For each ore build a table row with the necessary classes based on typename/typeid
         $.each( data, function( key, val ){
             $row = $('<tr>');
             $row.append($('<td style="text-align: center;"><input class="typeid-' + val.typeid + ' compressed" type="checkbox" value="1" /></td>'))
@@ -21,23 +24,20 @@
             $tableBody.append($row);
         });
         
+        // Disable the default tab ability on fields that are read only
         $('.value').on('keydown', function(e){ if (e.keyCode == 9)  e.preventDefault() });
         $('.totalvalue').on('keydown', function(e){ if (e.keyCode == 9)  e.preventDefault() });
-        
-
-        // $('.compressed').change(function(){
-        //     calculateTotals();
-        // });
-        
-
     });
 
     $('document').ready(function(){
+        
+        // When the calcu button is clicked
         $('#start-calc').click(function()
         {
             calculateTotals();
         });        
 
+        // When focused remove the commas and select the text
         $('#post-tax').bind('focus', function(data)
         {
             var $this = $(this);
@@ -54,6 +54,7 @@
 
         });
 
+        // When blurred add the commas back.
         $('#post-tax').bind('blur', function(data)
         {
             amount = parseFloat($(this).val().replace(/\,/g,''))
@@ -62,11 +63,16 @@
 
     });
 
+    /*
+     * Calculate the totals.
+     */
     function calculateTotals()
     {
 
+        // Set all the totals to defailt at 0
         $('.totalvalue').val(0);
 
+        // Get the line totals and format them properly
         $data.each(function(idx, item){
 
             $units = $('.units.typeid-' + item.typeid);
@@ -92,6 +98,8 @@
             }
         });
 
+        // Take all the line totals and add them to total value
+        // (maybe consolidate this with the code above at a later date.)
         totalValue = 0.00;
         
         $('.totalvalue').each(function(idx, amount)
@@ -103,7 +111,7 @@
             }
         });
 
-        // Figure out the 
+        // Figure out the taxed value.
         totalValue = totalValue/100;
         $("#pre-tax").val(formattedNumber(totalValue.toFixed(2))); 
         taxRate = (100 - parseInt($("#tax-rate").val())) / 100;
@@ -111,6 +119,7 @@
         $("#post-tax").val(formattedNumber(taxedValue.toFixed(2))); 
     }
     
+    // Add commas tothe number
     function formattedNumber(finalNumber)
     {
         return finalNumber.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
